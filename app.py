@@ -172,15 +172,12 @@ def download_video():
         'quiet': True,
         'socket_timeout': 30,
         'retries': 10,
-        # Force Android Client (but allow DASH/HLS for High Res)
+        # Force Mobile Clients which are less restricted
         'extractor_args': {
             'youtube': {
-                'player_client': ['android', 'web'],
+                'player_client': ['android', 'ios', 'web'],
             }
         },
-        'http_headers': {
-            'User-Agent': 'Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Mobile Safari/537.36',
-        }
     }
     
     # Inject cookies if file exists (Priority)
@@ -247,7 +244,7 @@ def download_video():
         'buffersize': 1024 * 1024, # 1MB Buffer
         'extractor_args': {
             'youtube': {
-                'player_client': ['android', 'web'],
+                'player_client': ['android', 'ios', 'web'],
             }
         },
     }
