@@ -166,96 +166,78 @@ def download_video():
     # PATH to cookies.txt (Keep as optional backup)
     cookie_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'cookies.txt')
 
-    # Configure yt-dlp to just get info first
-    ydl_opts_info = {
-        'noplaylist': True,
-        'quiet': True,
-        'socket_timeout': 30,
-        'retries': 10,
-        # Standard User Agent often works better than spoofing mobile now
-        'http_headers': {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-        }
-    }
+    # Primary High-Quality Options (Robust)
+    output_template = os.path.join(DOWNLOAD_FOLDER, f'{download_id}.%(ext)s')
     
-    # Inject cookies if file exists
-    if os.path.exists(cookie_path):
-        print(f"DEBUG: Found cookies.txt at {cookie_path}")
-        ydl_opts_info['cookiefile'] = cookie_path
-    else:
-        print(f"DEBUG: cookies.txt NOT FOUND at {cookie_path}")
-        print(f"DEBUG: Current Directory listed: {os.listdir('.')}")
-
-    try:
-        with yt_dlp.YoutubeDL(ydl_opts_info) as ydl:
-            try:
-                info_dict = ydl.extract_info(video_url, download=False)
-            except Exception as e:
-                flash(f'Error fetching video info: {str(e)}', 'error')
-                return redirect(url_for('index'))
-
-            duration = info_dict.get('duration', 0)
-            if duration > MAX_DURATION_SECONDS:
-                flash(f'Video is too long. Max duration is {MAX_DURATION_SECONDS//60} minutes.', 'error')
-                return redirect(url_for('index'))
-
-            title = info_dict.get('title', 'video')
-            # Truncate title to prevent long filenames (common in TikTok/Instagram)
-            if isinstance(title, str) and len(title) > 50:
-                title = title[:50]
-            
-            # Sanitize title for download filename
-            safe_title = "".join([c for c in title if c.isalpha() or c.isdigit() or c==' ']).rstrip()
-
-    except Exception as e:
-        flash(f'An unexpected error occurred during validation: {str(e)}', 'error')
-        return redirect(url_for('index'))
-
-    # Determine format based on FFmpeg availability
-    if FFMPEG_AVAILABLE:
-        # Prioirty: Best video + Best audio (Force best quality), fallback to best single file
-        format_selector = 'bestvideo+bestaudio/best'
-        output_template = os.path.join(DOWNLOAD_FOLDER, f'{download_id}.%(ext)s')
-    else:
-        # Best single file (No FFmpeg needed) - usually 720p max
-        format_selector = 'best[ext=mp4]/best'
-        output_template = os.path.join(DOWNLOAD_FOLDER, f'{download_id}.mp4')
-        flash('FFmpeg not installed. Downloaded standard quality (720p). Install FFmpeg for 1080p/4K.', 'error')
-
-    # Configure yt-dlp for actual download
-    ydl_opts_download = {
-        'format': format_selector,
+    ydl_opts_primary = {
+        # Force MP4, Avoid AV1 (Resource heavy), Favor separate streams
+        'format': '(bv*[ext=mp4][vcodec!*=av01]/bv*[ext=mp4])+(ba*[ext=m4a]/ba)/b[ext=mp4]/b',
         'outtmpl': output_template,
         'noplaylist': True,
         'quiet': True,
-        'nopart': True,  # Fix for [WinError 32]: Write directly to final filename
-        'force_overwrites': True,
-        'socket_timeout': 30,
-        'retries': 10,
+        'no_warnings': True,
+        'retries': 3,
+        'concurrent_fragment_downloads': 8,
+        'buffersize': 1024 * 1024,
+        'writethumbnail': False,
+        'writesubtitles': False,
         'http_headers': {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
         },
         'progress_hooks': [get_progress_hook(client_uid)] if client_uid else [],
-        
-        # Speed & Quality Optimizations
-        'concurrent_fragment_downloads': 8, # Download 8 segments at once
-        'buffersize': 1024 * 1024, # 1MB Buffer
     }
 
+    # Inject cookies if file exists
     if os.path.exists(cookie_path):
-        ydl_opts_download['cookiefile'] = cookie_path
+        ydl_opts_primary['cookiefile'] = cookie_path
 
+    # Merge opts if ffmpeg (Force MP4 output)
     if FFMPEG_AVAILABLE:
-         ydl_opts_download['merge_output_format'] = 'mp4'
+        ydl_opts_primary['merge_output_format'] = 'mp4'
+        ydl_opts_primary['postprocessors'] = [{'key': 'FFmpegVideoConvertor', 'preferedformat': 'mp4'}]
 
-    final_filename_pattern = os.path.join(DOWNLOAD_FOLDER, f'{download_id}.mp4')
+    # Fallback Options (Simple Safety Net)
+    ydl_opts_fallback = {
+        'format': 'best[ext=mp4]/best',
+        'outtmpl': output_template,
+        'noplaylist': True,
+        'quiet': True,
+        'writethumbnail': False,
+        'progress_hooks': [get_progress_hook(client_uid)] if client_uid else [],
+    }
+    if os.path.exists(cookie_path):
+        ydl_opts_fallback['cookiefile'] = cookie_path
+
+    # Basic Setup
+    safe_title = "video_download"
+    
+    # Optional: Quick validation for title/duration (can be skipped for speed, but good for filenames)
+    try:
+        with yt_dlp.YoutubeDL({'quiet': True, 'noplaylist': True}) as ydl:
+            info = ydl.extract_info(video_url, download=False)
+            safe_title = "".join([c for c in info.get('title', 'video') if c.isalpha() or c.isdigit() or c==' ']).rstrip()
+            if info.get('duration', 0) > MAX_DURATION_SECONDS:
+                 flash(f'Video too long (> {MAX_DURATION_SECONDS//60} mins).', 'error')
+                 return redirect(url_for('index'))
+    except:
+        pass # Ignore validation errors, let download try
 
     try:
         if client_uid:
             progress_status[client_uid] = {'state': 'starting', 'percent': 0, 'msg': 'Connecting to YouTube...'}
             
-        with yt_dlp.YoutubeDL(ydl_opts_download) as ydl:
-            ydl.download([video_url])
+        # Attempt 1: High Quality with Smart Format Selection
+        try:
+            with yt_dlp.YoutubeDL(ydl_opts_primary) as ydl:
+                ydl.download([video_url])
+        except Exception as e:
+            print(f"Primary download failed: {e}. Switching to fallback mode.")
+            if client_uid:
+                progress_status[client_uid]['msg'] = 'Retrying with basic quality...'
+            
+            # Attempt 2: Fallback to basic (guaranteed to exist)
+            with yt_dlp.YoutubeDL(ydl_opts_fallback) as ydl:
+                ydl.download([video_url])
             
         if client_uid:
              progress_status[client_uid] = {'state': 'complete', 'percent': 100, 'msg': 'Download Complete!'}
