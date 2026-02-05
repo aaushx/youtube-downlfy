@@ -166,21 +166,19 @@ def download_video():
     # PATH to cookies.txt (Keep as optional backup)
     cookie_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'cookies.txt')
 
-    # Configure yt-dlp to mimic Android App (Bypasses Login mostly)
+    # Configure yt-dlp to just get info first
     ydl_opts_info = {
         'noplaylist': True,
         'quiet': True,
         'socket_timeout': 30,
         'retries': 10,
-        # Force Mobile Clients which are less restricted
-        'extractor_args': {
-            'youtube': {
-                'player_client': ['android', 'ios', 'web'],
-            }
-        },
+        # Standard User Agent often works better than spoofing mobile now
+        'http_headers': {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        }
     }
     
-    # Inject cookies if file exists (Priority)
+    # Inject cookies if file exists
     if os.path.exists(cookie_path):
         print(f"DEBUG: Found cookies.txt at {cookie_path}")
         ydl_opts_info['cookiefile'] = cookie_path
@@ -240,13 +238,8 @@ def download_video():
         'progress_hooks': [get_progress_hook(client_uid)] if client_uid else [],
         
         # Speed & Quality Optimizations
-        'concurrent_fragment_downloads': 8, # Download 8 segments at once (Major speed boost for DASH)
+        'concurrent_fragment_downloads': 8, # Download 8 segments at once
         'buffersize': 1024 * 1024, # 1MB Buffer
-        'extractor_args': {
-            'youtube': {
-                'player_client': ['android', 'ios', 'web'],
-            }
-        },
     }
 
     if os.path.exists(cookie_path):
