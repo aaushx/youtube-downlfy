@@ -163,21 +163,28 @@ def download_video():
     # Generate a unique ID for the FILE (internal use)
     download_id = str(uuid.uuid4())
     
-    # PATH to cookies.txt
+    # PATH to cookies.txt (Keep as optional backup)
     cookie_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'cookies.txt')
 
-    # Configure yt-dlp to just get info first (for validation and duration check)
+    # Configure yt-dlp to mimic Android App (Bypasses Login mostly)
     ydl_opts_info = {
         'noplaylist': True,
         'quiet': True,
         'socket_timeout': 30,
         'retries': 10,
+        # Force Android Client
+        'extractor_args': {
+            'youtube': {
+                'player_client': ['android', 'web'],
+                'skip': ['hls', 'dash']
+            }
+        },
         'http_headers': {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            'User-Agent': 'Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Mobile Safari/537.36',
         }
     }
     
-    # Inject cookies if file exists
+    # Inject cookies if file exists (Priority)
     if os.path.exists(cookie_path):
         print(f"DEBUG: Found cookies.txt at {cookie_path}")
         ydl_opts_info['cookiefile'] = cookie_path
@@ -239,6 +246,11 @@ def download_video():
         # Speed & Quality Optimizations
         'concurrent_fragment_downloads': 8, # Download 8 segments at once (Major speed boost for DASH)
         'buffersize': 1024 * 1024, # 1MB Buffer
+        'extractor_args': {
+            'youtube': {
+                'player_client': ['android', 'web'],
+            }
+        },
     }
 
     if os.path.exists(cookie_path):
