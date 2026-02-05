@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YT DOWNLFY - High-Fidelity Archiver</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;700&display=swap"
+        rel="stylesheet">
+</head>
+
+<body>
+    <div class="background-blobs">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+    </div>
+
+    <div class="container">
+        <div class="minimal-card">
+            <button class="menu-btn" onclick="toggleMenu()">☰</button>
+
+            <div id="main-view">
+                <header>
+                    <h1>
+                        <svg width="0.8em" height="0.8em" viewBox="0 0 24 24" fill="none"
+                            xmlns="http://www.w3.org/2000/svg" style="vertical-align: middle; margin-right: 10px;">
+                            <path d="M12 15L12 3" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+                                stroke-linejoin="round" />
+                            <path d="M6 9L12 15L18 9" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+                                stroke-linejoin="round" />
+                            <path d="M5 19H19" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+                                stroke-linejoin="round" />
+                        </svg>YT DOWNLFY
+                    </h1>
+                    <p>High-Fidelity Media Archiver</p>
+                    <div class="platform-tags">
+                        <span>YouTube</span> • <span>Instagram</span>
+                    </div>
+                </header>
+
+                {% if ffmpeg_missing %}
+                <div class="status-badge warning">
+                    <span class="badge-dot"></span> FFmpeg Missing (720p Max)
+                </div>
+                {% else %}
+                <div class="status-badge success">
+                    <span class="badge-dot"></span> Multi-Platform Engine Ready
+                </div>
+                {% endif %}
+
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                <div class="flash-messages">
+                    {% for category, message in messages %}
+                    <div class="flash-msg {{ category }}">{{ message }}</div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+                {% endwith %}
+
+                <form action="/download" method="POST" id="download-form" onsubmit="startDownload(event)">
+                    <div class="input-group">
+                        <input type="hidden" name="uid" id="uid_field">
+                        <input type="url" name="url" placeholder="Paste Link (YouTube, Reels, Posts...)" required
+                            autocomplete="off">
+                    </div>
+
+                    <button type="submit" class="btn-primary" id="submit-btn">
+                        <span class="btn-text">INITIALIZE ARCHIVE</span>
+                    </button>
+                </form>
+
+                <!-- Progress Section -->
+                <div id="progress-container" class="progress-container" style="display: none;">
+                    <div class="progress-info">
+                        <span id="progress-msg" class="progress-msg">Connecting...</span>
+                        <span id="progress-percent" class="progress-percent">0%</span>
+                    </div>
+                    <div class="progress-bar-bg">
+                        <div id="progress-bar-fill" class="progress-bar-fill"></div>
+                    </div>
+                    <div id="fun-text" class="fun-text">Calibrating flux capacitors...</div>
+                </div>
+
+                <div class="features">
+                    <div class="feature-item">
+                        <span class="label">FIDELITY</span>
+                        <span class="value">PIXEL PERFECT</span>
+                    </div>
+                    <div class="feature-item">
+                        <span class="label">CORE</span>
+                        <span class="value">DIRECT STREAM</span>
+                    </div>
+                    <div class="feature-item">
+                        <span class="label">STEALTH</span>
+                        <span class="value">GHOST MODE</span>
+                    </div>
+                </div>
+
+                <!-- Footer Removed -->
+            </div> <!-- End of #main-view -->
+
+            <!-- THANK YOU / FEEDBACK VIEW -->
+            <div id="thank-you-view" style="display: none;">
+                <header>
+                    <h1 id="feedback-title">DONE<span class="dot">!</span></h1>
+                    <p id="feedback-subtitle">Your download has started.</p>
+                </header>
+
+                <div class="feedback-section">
+                    <p>How was your experience?</p>
+                    <div class="stars" id="star-container">
+                        <span class="star" onclick="rate(1)">★</span>
+                        <span class="star" onclick="rate(2)">★</span>
+                        <span class="star" onclick="rate(3)">★</span>
+                        <span class="star" onclick="rate(4)">★</span>
+                        <span class="star" onclick="rate(5)">★</span>
+                    </div>
+
+                    <textarea id="feedback-comment" placeholder="Any feedback for us? (Optional)"></textarea>
+
+                    <button onclick="submitFeedback()" class="btn-primary" id="submit-feedback-btn">
+                        <span class="btn-text">SUBMIT & FINISH</span>
+                    </button>
+
+                    <a href="#" onclick="window.location.reload()" class="cancel-link">Skip & Finish</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Side Panel -->
+        <div class="side-panel" id="side-panel">
+            <button class="close-btn" onclick="toggleMenu()">×</button>
+
+            <div class="panel-section">
+                <h3>Objective</h3>
+                <p>To provide an uncompromising, high-fidelity media archiving solution for content creators,
+                    researchers, and digital preservationists.</p>
+            </div>
+
+            <div class="panel-section">
+                <h3>About</h3>
+                <p>YT DOWNLFY is constructed with a privacy-first architecture. We utilize direct stream processing to
+                    ensure no user logs are retained and the highest original source quality is maintained.</p>
+            </div>
+
+            <div class="panel-section">
+                <h3>Description</h3>
+                <p>This tool bypasses standard compression algorithms used by browser-based downloaders, directly
+                    interfacing with the source API to extract raw 4K/8K video streams and lossless audio
+                    containers.
+                </p>
+            </div>
+        </div>
+
+        <script>
+            // Theme Logic (OS Sync Only)
+            function applyOSTheme() {
+                const isLight = window.matchMedia('(prefers-color-scheme: light)').matches;
+                if (isLight) {
+                    document.body.classList.add('light-theme');
+                } else {
+                    document.body.classList.remove('light-theme');
+                }
+            }
+
+            // Initial Load
+            applyOSTheme();
+
+            // Listen for OS changes
+            window.matchMedia('(prefers-color-scheme: light)').addEventListener('change', applyOSTheme);
+
+            // Menu Logic
+            function toggleMenu() {
+                const panel = document.getElementById('side-panel');
+                panel.classList.toggle('open');
+            }
+
+            const engagingTexts = [
+                "Warming up the download engine...",
+                "Fetching pixels from the internet...",
+                "Merging audio and video streams...",
+                "Polishing frames for high definition...",
+                "Almost there, hang tight...",
+                "Avoiding YouTube ads for you...",
+                "Compressing time and space..."
+            ];
+
+            function startDownload(e) {
+                const btn = document.getElementById('submit-btn');
+                const progressContainer = document.getElementById('progress-container');
+                const uidField = document.getElementById('uid_field');
+
+                // Generate UID
+                const uid = 'dl_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+                uidField.value = uid;
+
+                // UI Updates
+                btn.classList.add('loading');
+                btn.disabled = true;
+                btn.querySelector('.btn-text').textContent = 'PROCESSING...';
+                progressContainer.style.display = 'block';
+
+                // Start Polling
+                let textIdx = 0;
+                const textInterval = setInterval(() => {
+                    document.getElementById('fun-text').textContent = engagingTexts[textIdx % engagingTexts.length];
+                    textIdx++;
+                }, 3000);
+
+                let complete = false;
+
+                const pollInterval = setInterval(() => {
+                    fetch(`/progress/${uid}`)
+                        .then(r => r.json())
+                        .then(data => {
+                            updateProgress(data);
+                            if (data.state === 'complete' && data.percent >= 100 && !complete) {
+                                complete = true;
+                                clearInterval(pollInterval);
+                                clearInterval(textInterval);
+
+                                // Transition to Thank You View
+                                setTimeout(() => {
+                                    showFeedbackView(true);
+                                }, 500);
+                            }
+                        })
+                        .catch(err => console.log(`Polling error: ${err}`));
+                }, 1000);
+            }
+
+            function updateProgress(data) {
+                const bar = document.getElementById('progress-bar-fill');
+                const msg = document.getElementById('progress-msg');
+                const percent = document.getElementById('progress-percent');
+
+                if (data.percent) {
+                    bar.style.width = data.percent + '%';
+                    percent.textContent = data.percent + '%';
+                }
+                if (data.msg) {
+                    msg.textContent = data.msg;
+                }
+            }
+
+            let currentRating = 0;
+
+            function rate(stars) {
+                currentRating = stars;
+                const allStars = document.querySelectorAll('.star');
+                allStars.forEach((s, idx) => {
+                    if (idx < stars) s.classList.add('active');
+                    else s.classList.remove('active');
+                });
+            }
+
+            function openFeedback(e) {
+                if (e) e.preventDefault();
+                document.getElementById('feedback-title').innerHTML = 'FEED<span class="dot">BACK</span>';
+                document.getElementById('feedback-subtitle').textContent = 'Help us improve YT DOWNLFY';
+                showFeedbackView(false);
+            }
+
+            function showFeedbackView(isDownloadContext) {
+                document.getElementById('main-view').style.display = 'none';
+                document.getElementById('thank-you-view').style.display = 'block';
+            }
+
+            function submitFeedback() {
+                const comment = document.getElementById('feedback-comment').value;
+                const btn = document.getElementById('submit-feedback-btn');
+
+                btn.querySelector('.btn-text').textContent = "SENDING...";
+                btn.disabled = true;
+
+                fetch('/feedback', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ rating: currentRating, comment: comment })
+                })
+                    .then(r => r.json())
+                    .then(data => {
+                        window.location.reload();
+                    })
+                    .catch(err => {
+                        console.error(err);
+                        window.location.reload();
+                    });
+            }
+        </script>
+</body>
+
+</html>

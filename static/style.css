@@ -1,0 +1,555 @@
+:root {
+    --bg-color: #000000;
+    --card-bg: #0a0a0a;
+    --border-color: #333;
+    --text-primary: #ffffff;
+    --text-secondary: #aaa;
+    /* Lighter gray for better visibility */
+    --accent: #ffffff;
+    --progress-bg: #222;
+    --progress-fill: #fff;
+    --font-main: 'Space Grotesk', sans-serif;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: var(--font-main);
+    background-color: var(--bg-color);
+    color: var(--text-primary);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    /* overflow-x: hidden;  -- Removed to prevent accidental clipping, though vertical is distinct */
+    overflow-y: auto;
+    /* Explicitly allow scrolling */
+    font-size: 16px;
+    padding-block: 50px;
+    /* Add vertical spacing to ensure scrollability */
+}
+
+/* Subtle glow instead of loud blobs */
+.background-blobs {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    background: radial-gradient(circle at 50% 50%, #1a1a1a 0%, #000000 70%);
+}
+
+.container {
+    width: 100%;
+    max-width: 500px;
+    padding: 20px;
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes pulse {
+    0% {
+        opacity: 0.5;
+        transform: scale(0.8);
+    }
+
+    50% {
+        opacity: 1;
+        transform: scale(1.2);
+    }
+
+    100% {
+        opacity: 0.5;
+        transform: scale(0.8);
+    }
+}
+
+.minimal-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 0px;
+    padding: 50px 40px;
+    box-shadow: 0 0 50px rgba(255, 255, 255, 0.03);
+    text-align: center;
+    position: relative;
+    animation: fadeIn 0.8s ease-out;
+}
+
+/* ... existing header styles ... */
+header h1 {
+    font-size: 3rem;
+    font-weight: 700;
+    letter-spacing: -2px;
+    margin-bottom: 0.5rem;
+}
+
+.dot {
+    font-weight: bold;
+    color: #444;
+}
+
+header p {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 2rem;
+}
+
+.platform-tags {
+    color: #555;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-top: -20px;
+    margin-bottom: 30px;
+}
+
+/* Status Badge */
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    background: #111;
+    border: 1px solid #222;
+    border-radius: 100px;
+    font-size: 0.75rem;
+    color: #666;
+    margin-bottom: 30px;
+    transition: all 0.3s ease;
+}
+
+.status-badge:hover {
+    border-color: #444;
+    transform: translateY(-2px);
+}
+
+.badge-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #666;
+    animation: pulse 2s infinite ease-in-out;
+}
+
+.status-badge.success .badge-dot {
+    background: #00ff88;
+    box-shadow: 0 0 10px #00ff88;
+}
+
+.status-badge.warning .badge-dot {
+    background: #ffaa00;
+}
+
+/* Form */
+.input-group {
+    margin-bottom: 20px;
+}
+
+input[type="url"] {
+    width: 100%;
+    padding: 20px;
+    background: #000;
+    border: 1px solid #333;
+    color: white;
+    font-family: inherit;
+    font-size: 1rem;
+    outline: none;
+    transition: all 0.3s ease;
+}
+
+input[type="url"]:focus {
+    border-color: #888;
+    transform: scale(1.02);
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.05);
+}
+
+.btn-primary {
+    width: 100%;
+    padding: 20px;
+    background: white;
+    color: black;
+    border: none;
+    font-family: inherit;
+    font-weight: 700;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.btn-primary:hover:not(:disabled) {
+    background: #e6e6e6;
+    transform: translateY(-3px) scale(1.01);
+    box-shadow: 0 10px 30px rgba(255, 255, 255, 0.1);
+}
+
+.btn-primary:active {
+    transform: translateY(-1px);
+}
+
+.btn-primary:disabled {
+    background: #333;
+    color: #666;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* Progress Bar */
+.progress-container {
+    margin-top: 30px;
+    text-align: left;
+    animation: fadeIn 0.5s ease-out;
+}
+
+/* ... existing progress styles ... */
+.progress-info {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.8rem;
+    color: #666;
+    margin-bottom: 8px;
+    align-items: center;
+    /* Align items vertically */
+}
+
+/* New stats container */
+.right-stats {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.progress-speed {
+    color: var(--text-primary);
+    /* Stand out more than grey text */
+    font-weight: 500;
+}
+
+.divider {
+    opacity: 0.3;
+}
+
+.progress-bar-bg {
+    width: 100%;
+    height: 2px;
+    background: #222;
+    overflow: hidden;
+}
+
+.progress-bar-fill {
+    height: 100%;
+    width: 0%;
+    background: white;
+    box-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
+    transition: width 0.3s ease;
+}
+
+.fun-text {
+    margin-top: 15px;
+    font-size: 0.8rem;
+    color: #444;
+    text-align: center;
+    font-style: italic;
+    min-height: 20px;
+}
+
+/* Features */
+.features {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 50px;
+    padding-top: 20px;
+    border-top: 1px solid #111;
+}
+
+.feature-item {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    transition: transform 0.3s ease;
+}
+
+.feature-item:hover {
+    transform: translateY(-3px);
+}
+
+.feature-item .label {
+    font-size: 0.6rem;
+    color: #444;
+    letter-spacing: 1px;
+}
+
+.feature-item .value {
+    font-size: 0.8rem;
+    font-weight: 700;
+}
+
+/* Feedback Link */
+footer {
+    text-align: center;
+    margin-top: 40px;
+}
+
+.feedback-link {
+    color: #444;
+    font-size: 0.8rem;
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+.feedback-link:hover {
+    color: #666;
+    text-decoration: underline;
+}
+
+.cancel-link {
+    display: block;
+    margin-top: 15px;
+    color: #444;
+    font-size: 0.8rem;
+    text-decoration: none;
+}
+
+.cancel-link:hover {
+    color: #666;
+}
+
+/* Flash Messages */
+.flash-msg {
+    padding: 10px;
+    background: #220000;
+    border: 1px solid #500;
+    color: #f88;
+    font-size: 0.8rem;
+    margin-bottom: 20px;
+    animation: fadeIn 0.5s ease-out;
+}
+
+/* Feedback Section */
+.feedback-section {
+    animation: fadeIn 0.8s ease-out;
+}
+
+.feedback-section p {
+    color: var(--text-secondary);
+    margin-bottom: 20px;
+}
+
+.stars {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-bottom: 30px;
+}
+
+.star {
+    font-size: 2rem;
+    color: #333;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.star:hover,
+.star.active {
+    color: #ffaa00;
+    text-shadow: 0 0 20px rgba(255, 170, 0, 0.5);
+    transform: scale(1.2);
+}
+
+textarea {
+    width: 100%;
+    background: #000;
+    border: 1px solid #333;
+    color: white;
+    padding: 15px;
+    margin-bottom: 20px;
+    font-family: inherit;
+    resize: vertical;
+    min-height: 100px;
+    transition: border-color 0.3s ease;
+}
+
+textarea:focus {
+    border-color: #666;
+    outline: none;
+}
+
+/* Light Theme Variables */
+.light-theme {
+    --bg-color: #f4f4f5;
+    /* Light Grayish White */
+    --card-bg: #ffffff;
+    --border-color: #e4e4e7;
+    --text-primary: #18181b;
+    /* Zinc 900 */
+    --text-secondary: #71717a;
+    /* Zinc 500 */
+    --accent: #18181b;
+    --progress-bg: #e4e4e7;
+    --progress-fill: #18181b;
+}
+
+/* Menu Button */
+.menu-btn {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    font-size: 1.5rem;
+    color: var(--text-secondary);
+    transition: color 0.3s;
+    z-index: 10;
+}
+
+
+
+.menu-btn:hover {
+    color: var(--text-primary);
+    transform: scale(1.1);
+}
+
+/* Side Panel (Overlay) */
+.side-panel {
+    position: fixed;
+    top: 0;
+    right: -350px;
+    /* Hidden */
+    width: 300px;
+    height: 100%;
+    background: var(--card-bg);
+    border-left: 1px solid var(--border-color);
+    box-shadow: -10px 0 30px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+    padding: 40px;
+    transition: right 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    display: flex;
+    flex-direction: column;
+}
+
+.side-panel.open {
+    right: 0;
+}
+
+.close-btn {
+    align-self: flex-end;
+    background: transparent;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: var(--text-primary);
+    margin-bottom: 40px;
+}
+
+.panel-section {
+    margin-bottom: 40px;
+    text-align: left;
+}
+
+.panel-section h3 {
+    font-size: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 15px;
+    color: var(--text-secondary);
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 5px;
+}
+
+.panel-section p {
+    font-size: 0.9rem;
+    line-height: 1.6;
+    color: var(--text-primary);
+}
+
+/* ============================ */
+/*      RESPONSIVE DESIGN       */
+/* ============================ */
+
+@media (max-width: 600px) {
+    .container {
+        padding: 10px;
+        max-width: 100%;
+    }
+
+    .minimal-card {
+        padding: 30px 20px;
+        /* Make card feel native on mobile */
+        border: none;
+        box-shadow: none;
+        background: transparent;
+    }
+
+    /* Adjust header for small screens */
+    header h1 {
+        font-size: 2.2rem;
+        letter-spacing: -1px;
+    }
+
+    header p {
+        font-size: 0.8rem;
+    }
+
+    /* Improve touch targets */
+    input[type="url"],
+    .btn-primary {
+        padding: 15px;
+        font-size: 0.95rem;
+    }
+
+    /* Full screen side panel */
+    .side-panel {
+        width: 100%;
+        right: -100%;
+    }
+
+    .status-badge {
+        font-size: 0.7rem;
+        padding: 5px 10px;
+    }
+
+    /* Stack features vertically */
+    .features {
+        flex-direction: column;
+        gap: 20px;
+        text-align: center;
+    }
+
+    .feature-item {
+        align-items: center;
+        flex-direction: row;
+        justify-content: center;
+        gap: 15px;
+    }
+
+    /* Adjust progress bar layout */
+    .progress-info {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 5px;
+    }
+
+    .right-stats {
+        width: 100%;
+        justify-content: space-between;
+        font-size: 0.85rem;
+    }
+}
