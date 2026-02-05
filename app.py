@@ -172,11 +172,10 @@ def download_video():
         'quiet': True,
         'socket_timeout': 30,
         'retries': 10,
-        # Force Android Client
+        # Force Android Client (but allow DASH/HLS for High Res)
         'extractor_args': {
             'youtube': {
                 'player_client': ['android', 'web'],
-                'skip': ['hls', 'dash']
             }
         },
         'http_headers': {
