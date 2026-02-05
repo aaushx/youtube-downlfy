@@ -179,7 +179,11 @@ def download_video():
     
     # Inject cookies if file exists
     if os.path.exists(cookie_path):
+        print(f"DEBUG: Found cookies.txt at {cookie_path}")
         ydl_opts_info['cookiefile'] = cookie_path
+    else:
+        print(f"DEBUG: cookies.txt NOT FOUND at {cookie_path}")
+        print(f"DEBUG: Current Directory listed: {os.listdir('.')}")
 
     try:
         with yt_dlp.YoutubeDL(ydl_opts_info) as ydl:
