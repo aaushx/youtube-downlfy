@@ -163,6 +163,9 @@ def download_video():
     # Generate a unique ID for the FILE (internal use)
     download_id = str(uuid.uuid4())
     
+    # PATH to cookies.txt
+    cookie_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'cookies.txt')
+
     # Configure yt-dlp to just get info first (for validation and duration check)
     ydl_opts_info = {
         'noplaylist': True,
@@ -173,6 +176,10 @@ def download_video():
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
         }
     }
+    
+    # Inject cookies if file exists
+    if os.path.exists(cookie_path):
+        ydl_opts_info['cookiefile'] = cookie_path
 
     try:
         with yt_dlp.YoutubeDL(ydl_opts_info) as ydl:
@@ -229,6 +236,9 @@ def download_video():
         'concurrent_fragment_downloads': 8, # Download 8 segments at once (Major speed boost for DASH)
         'buffersize': 1024 * 1024, # 1MB Buffer
     }
+
+    if os.path.exists(cookie_path):
+        ydl_opts_download['cookiefile'] = cookie_path
 
     if FFMPEG_AVAILABLE:
          ydl_opts_download['merge_output_format'] = 'mp4'
